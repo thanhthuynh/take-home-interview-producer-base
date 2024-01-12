@@ -21,14 +21,29 @@ import {
 
     // Function to handle advertisement challenges
     const handleChallenge = (challengedPlayerId) => {
-      // Implement the challenge logic
       console.log(`Challenging player ${challengedPlayerId}'s advertisement`);
-      // Send this challenge information to the server
+      const warrantAmount = player.round.get("warrantAmount");
+
+      // Set challenge data for the challenger
       player.round.set("challenge", {
         status: true,
         target: challengedPlayerId,
-        round: roundNumber
+        challenger: player.id,
+        round: roundNumber,
+        warrantAmount: warrantAmount
       });
+
+      // Find the target player and set the challenge data for them as well
+      const targetPlayer = players.find(p => p.id === challengedPlayerId);
+      if (targetPlayer) {
+        targetPlayer.round.set("challenge", {
+          status: true,
+          target: challengedPlayerId,
+          challenger: player.id,
+          round: roundNumber,
+          warrantAmount: warrantAmount
+        });
+      }
     };
       
     function handleChange() {

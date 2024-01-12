@@ -13,11 +13,14 @@ export function SalesResults({ roundNumber }) {
   const priceOfProduct = choices ? choices[2] : 0;
   const productionCost = choices ? choices[3] : 0;
   const warrantAmount = choices ? choices[4] : 0;
-  const wasChallenged = choices ? choices[5] : false;
 
-  // Get challenge result and warrant status
-  const challengeResult = player.round.get("challengeResult")?.result
-  const challengeScore = player.round.get("challengeResult")?.score || 0
+  // Check if the player was the target of a challenge
+  const challengeResult = player.get("challengeResult");
+  const wasChallenged = challengeResult != null;
+
+  // Access the challenge result and score
+  const challengeOutcome = challengeResult?.result;
+  const challengeScore = challengeResult?.score || 0;
 
   console.log("wasChallenged", wasChallenged);
   
@@ -91,13 +94,13 @@ export function SalesResults({ roundNumber }) {
               Challenge Result
             </h2>
             <p>
-              However, another player challenged your warrant and your warrant was {challengeResult ? "upheld and you gained " : "invalidated and you lost"} ${warrantAmount}.<br/>
+              Your warrant was {challengeOutcome ? "upheld and you gained " : "invalidated and you lost"} ${Math.abs(challengeScore)}.
             </p>
           </div>
         )}
 
         <p> Your score for this round is: {salesCount} + {challengeScore} </p>
-        <p> Your total score is: {currentScore + salesCount + challengeScore} </p><br/>
+        <p> Your total score is: {finalScore} </p><br/>
         <p> 
           Click to proceed to the next round to sell products in this marketplace.
         </p>
