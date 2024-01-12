@@ -13,13 +13,14 @@ export function SalesResults({ roundNumber }) {
   const priceOfProduct = choices ? choices[2] : 0;
   const productionCost = choices ? choices[3] : 0;
   const warrantAmount = choices ? choices[4] : 0;
+  const wasChallenged = choices ? choices[5] : false;
 
   // Get challenge result and warrant status
-  const challenge = player.round.get("challenge")
-  const wasChallenged = challenge?.challenged;
-  const challengeResult = challenge?.result; // Adjust based on how result is stored
-  const challengeScore = challenge?.score || 0;
+  const challengeResult = player.round.get("challengeResult")?.result
+  const challengeScore = player.round.get("challengeResult")?.score || 0
 
+  console.log("wasChallenged", wasChallenged);
+  
   let imageUrl = "";
   //console.log('roundNumberText', roundNumberText)
   if (advertisementQuality === "high") {
@@ -49,6 +50,8 @@ export function SalesResults({ roundNumber }) {
   const salesCount = numBuyers * (priceOfProduct - productionCost);
   const finalScore = currentScore + salesCount + challengeScore;
 
+  console.log("salesCount", salesCount, "challengeScore", challengeScore, "finalScore", finalScore);
+
   function handleSubmit() {
     console.log('Moving on from results round');
     player.stage.set("submit", true);
@@ -72,6 +75,14 @@ export function SalesResults({ roundNumber }) {
         </p>
 
         <img src={imageUrl} alt="Toothpaste Standard" width="250" height="250"/>
+        
+        <p>
+          It was advertised to an audience of 100 users, and {numBuyers} users bought your product.
+        </p>
+
+        <p> 
+          You earned ${priceOfProduct - productionCost}  per product x {numBuyers} units sold = {salesCount} points in sales.
+        </p><br/>
 
         {/* Challenge Result Section */}
         {wasChallenged && (
@@ -80,19 +91,12 @@ export function SalesResults({ roundNumber }) {
               Challenge Result
             </h2>
             <p>
-              Your warrant was {challengeResult ? "upheld" : "invalidated"} in the challenge. You lost ${warrantAmount} in the challenge and ${challengeScore} in sales.
+              However, another player challenged your warrant and your warrant was {challengeResult ? "upheld and you gained " : "invalidated and you lost"} ${warrantAmount}.<br/>
             </p>
           </div>
         )}
 
-        
-        <p>
-          It was advertised to an audience of 100 users, and {numBuyers} users bought your product.
-        </p>
-        <p> 
-          You earned ${priceOfProduct - productionCost}  per product x {numBuyers} units sold = {salesCount} points in sales.
-        </p><br/>
-        <p> Your score for this round is: {salesCount} </p>
+        <p> Your score for this round is: {salesCount} + {challengeScore} </p>
         <p> Your total score is: {currentScore + salesCount + challengeScore} </p><br/>
         <p> 
           Click to proceed to the next round to sell products in this marketplace.

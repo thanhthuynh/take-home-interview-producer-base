@@ -158,21 +158,18 @@ function resolveWarrantChallenge(player, game) {
 // Apply penalty to a player
 function applyPenalty(player) {
   // Logic to reduce the player's customers or points
-  let score = player.get("challenge")?.score || 0;
-  player.set("challenge", {
-    result: null,
-    challenged: false,
-    score: score * 0.8
+  player.set("challengeResult", {
+    result: false,
+    score: -1 * player.round.get("warrantAmount")
   });
 }
 
 // Apply reward to a player
 function applyReward(player) {
   // Logic to increase the player's customers or points
-  let score = player.get("challenge")?.score || 0;
-  player.set("challenge", {
-    result: null,
-    challenged: false,
-    score: score * 1.2
+  let score = player.get("challengeResult")?.score || 0;
+  player.set("challengeResult", {
+    result: true,
+    score: player.round.get("warrantAmount")
   });
 }
