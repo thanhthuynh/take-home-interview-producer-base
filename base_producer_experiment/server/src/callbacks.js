@@ -74,18 +74,24 @@ Empirica.onStageStart(({ stage }) => {
 });
 
 Empirica.onStageEnded(({ stage, game }) => {
-  // Handle warrant challenges at the end of the advertisement stage
   if (stage.get("name") === "advertiseProduct") {
     stage.currentGame.players.forEach(player => {
-      const warrant = player.get("warrant");
-      if (warrant.active && warrant.challenged) {
-        resolveWarrantChallenge(player, game);
+      const challenge = player.get("challenge");
+      if (challenge) {
+        const targetPlayer = stage.currentGame.players.find(p => p.id === challenge.target);
+        if (targetPlayer) {
+          // Implement logic to handle the challenge
+          resolveWarrantChallenge(targetPlayer, stage.currentGame);
+
+          // Reset the challenge state
+          player.set("challenge", null);
+        }
       }
     });
   }
 });
 
-Empirica.onRoundEnded(({ round, game }) => {
+Empirica.onRoundEnded(({ round }) => {
   // Apply rewards for unchallenged warrants
   round.currentGame.players.forEach(player => {
     const warrant = player.get("warrant");
@@ -147,27 +153,26 @@ function resolveWarrantChallenge(player, game) {
   } else {
     applyPenalty(player); // Apply penalty if the warrant is false
   }
-
-  // Reset the warrant status
-  player.set("warrant", {
-    amount: 0,
-    active: false,
-    challenged: false
-  });
 }
 
 // Apply penalty to a player
 function applyPenalty(player) {
   // Logic to reduce the player's customers or points
-  // Example: Subtract 10 points
-  let score = player.get("score") || 0;
-  player.set("score", score - 10);
+  let score = player.get("challenge")?.score || 0;
+  player.set("challenge", {
+    result: null,
+    challenged: false,
+    score: score * 0.8
+  });
 }
 
 // Apply reward to a player
 function applyReward(player) {
   // Logic to increase the player's customers or points
-  // Example: Add 10 points
-  let score = player.get("score") || 0;
-  player.set("score", score + 10);
+  let score = player.get("challenge")?.score || 0;
+  player.set("challenge", {
+    result: null,
+    challenged: false,
+    score: score * 1.2
+  });
 }

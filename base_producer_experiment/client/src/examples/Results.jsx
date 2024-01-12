@@ -3,16 +3,23 @@ import { Button } from "../components/Button";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useRef } from "react";
 
-export function SalesResults({roundNumber}) {
-  console.log('calculating advertiser score');
+export function SalesResults({ roundNumber }) {
   const player = usePlayer();
   const roundNumberText = 'round' + roundNumber;
   
-  //const adQuality = player.get("adQuality");
-  const productionQuality = player.get(roundNumberText.concat("_choices"))[0]
-  const advertisementQuality = player.get(roundNumberText.concat("_choices"))[1]
-  const priceOfProduct = player.get(roundNumberText.concat("_choices"))[2]
-  const productionCost = player.get(roundNumberText.concat("_choices"))[3]
+  const choices = player.get(roundNumberText.concat("_choices"));
+  const productionQuality = choices ? choices[0] : "Not set";
+  const advertisementQuality = choices ? choices[1] : "Not set";
+  const priceOfProduct = choices ? choices[2] : 0;
+  const productionCost = choices ? choices[3] : 0;
+  const warrantAmount = choices ? choices[4] : 0;
+
+  // Get challenge result and warrant status
+  const challenge = player.round.get("challenge")
+  const wasChallenged = challenge?.challenged;
+  const challengeResult = challenge?.result; // Adjust based on how result is stored
+  const challengeScore = challenge?.score || 0;
+
   let imageUrl = "";
   //console.log('roundNumberText', roundNumberText)
   if (advertisementQuality === "high") {
@@ -40,7 +47,7 @@ export function SalesResults({roundNumber}) {
 
 
   const salesCount = numBuyers * (priceOfProduct - productionCost);
-  const finalScore = currentScore + salesCount
+  const finalScore = currentScore + salesCount + challengeScore;
 
   function handleSubmit() {
     console.log('Moving on from results round');
@@ -66,6 +73,18 @@ export function SalesResults({roundNumber}) {
 
         <img src={imageUrl} alt="Toothpaste Standard" width="250" height="250"/>
 
+        {/* Challenge Result Section */}
+        {wasChallenged && (
+          <div className="challenge-result-section">
+            <h2 className="text-lg leading-6 font-medium text-gray-900">
+              Challenge Result
+            </h2>
+            <p>
+              Your warrant was {challengeResult ? "upheld" : "invalidated"} in the challenge. You lost ${warrantAmount} in the challenge and ${challengeScore} in sales.
+            </p>
+          </div>
+        )}
+
         
         <p>
           It was advertised to an audience of 100 users, and {numBuyers} users bought your product.
@@ -74,7 +93,7 @@ export function SalesResults({roundNumber}) {
           You earned ${priceOfProduct - productionCost}  per product x {numBuyers} units sold = {salesCount} points in sales.
         </p><br/>
         <p> Your score for this round is: {salesCount} </p>
-        <p> Your total score is: {salesCount + currentScore} </p><br/>
+        <p> Your total score is: {currentScore + salesCount + challengeScore} </p><br/>
         <p> 
           Click to proceed to the next round to sell products in this marketplace.
         </p>

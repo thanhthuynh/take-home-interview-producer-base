@@ -9,24 +9,27 @@ import {
   import { Button } from "../components/Button";
   import "@empirica/core/player/classic/react";
   
-  export function Advertisement({roundNumber}) {
+  export function Advertisement({ roundNumber }) {
     const player = usePlayer();
     const players = usePlayers();
     const stage = useStage();
-
     const roundNumberText = 'round' + roundNumber;
 
-    // New state for warrant feature
-    const [warrantEnabled, setWarrantEnabled] = useState(false);
-    const [warrantAmount, setWarrantAmount] = useState(0);
-
-    function handleWarrantToggle() {
-      setWarrantEnabled(!warrantEnabled);
+    function handleWarrantAmount(e) {
+      player.round.set("warrantAmount", parseInt(e.target.value, 10));
     }
 
-    function handleWarrantAmountChange(e) {
-      setWarrantAmount(e.target.value);
-    }
+    // Function to handle advertisement challenges
+    const handleChallenge = (challengedPlayerId) => {
+      // Implement the challenge logic
+      console.log(`Challenging player ${challengedPlayerId}'s advertisement`);
+      // Send this challenge information to the server
+      player.round.set("challenge", {
+        status: true,
+        target: challengedPlayerId,
+        round: roundNumber
+      });
+    };
       
     function handleChange() {
       console.log("something happened");
@@ -39,21 +42,9 @@ import {
       [player.round.get("productionQuality"),
       player.round.get("advertisementQuality"),
       player.round.get("priceOfProduct"),
-      player.round.get("productionCost")])
-
-      // Include warrant information in the player's state
-      if (warrantEnabled) {
-        console.log("Warrant enabled, amount: ", warrantAmount)
-        player.set("warrant", {
-          amount: warrantAmount,
-          active: true
-        });
-      } else {
-        player.set("warrant", {
-          amount: 0,
-          active: false
-        });
-      }
+      player.round.get("productionCost"),
+      player.round.get("warrantAmount"),
+      player.round.get("challenge")]);
 
       player.stage.set("submit", true); //player.stage.submit();
     }
@@ -108,6 +99,23 @@ import {
         </div>
       );
     }
+
+    const otherPlayersAds = players.filter(p => p.id !== player.id).map(otherPlayer => (
+      <div key={otherPlayer.id} className="other-player-ad">
+          <div>
+              {/* Display other player details */}
+              <p>{otherPlayer.id}'s Advertisement:</p>
+              <p>Production Quality: {otherPlayer.round.get("productionQuality")}</p>
+              <p>Advertisement Quality: {otherPlayer.round.get("advertisementQuality")}</p>
+              <p>Price: ${otherPlayer.round.get("priceOfProduct")}</p>
+              <p>Warrant: {otherPlayer.round.get("warrantAmount")}</p>
+              <p>Challenged: {otherPlayer.round.get("challenge")?.status ? "Yes" : "No"}</p>
+              <Button text="Challenge" handleClick={() => handleChallenge(otherPlayer.id)}>Challenge</Button>
+          </div>
+      </div>
+    ));
+
+
     return (
       <div className="md:min-w-96 lg:min-w-128 xl:min-w-192 flex flex-col items-center space-y-10">
         {}
@@ -150,36 +158,29 @@ import {
           </div>
           <ProfitMarginCalculation producerPlayer = {player}/>
 
-          {/* Warrant Feature UI */}
           <div className="warrant-feature">
             <label>
-              <input
-                type="checkbox"
-                checked={warrantEnabled}
-                onChange={handleWarrantToggle}
-              />
-              Add Warrant to Advertisement
-            </label>
-            {warrantEnabled && (
-              <div>
-                <label>
-                  Warrant Amount: $
-                  <input
+                Warrant Amount: $
+                <input
                     type="number"
-                    value={warrantAmount}
-                    onChange={handleWarrantAmountChange}
+                    value={player.round.get("warrantAmount") || 0}
+                    onChange={handleWarrantAmount}
                     min="0"
-                  />
-                </label>
-              </div>
-            )}
+                />
+            </label>
           </div>
+
+          {/* Display other players' advertisements */}
+          <div className="other-players-ads-container">
+                {otherPlayersAds}
+            </div>
 
           <br/><br/>
             <NextRoundButton on_button_click={(e) => handleSubmit(e)}/>
             <br/>
       </div>
     );
+
   }
   
   function NextRoundButton({on_button_click}){
