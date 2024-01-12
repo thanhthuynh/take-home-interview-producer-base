@@ -51,17 +51,51 @@ Empirica.onGameStart(({ game }) => {
   });
   round7.addStage({ name: "Result", duration: 140 });
 
+  // Initialize warrant data for each player
+  game.players.forEach(player => {
+    player.set("warrant", {
+      amount: 0,      // Initial warrant amount
+      active: false,  // Indicates if the warrant is currently active
+      challenged: false // Tracks if the warrant has been challenged
+    });
+  });
 });
 
-Empirica.onRoundStart(({ round }) => {});
+Empirica.onRoundStart(({ round }) => {
+  // Reset warrant status at the start of each round
+  round.currentGame.players.forEach(player => {
+    const warrant = player.get("warrant");
+    player.set("warrant", { ...warrant, active: true, challenged: false });
+  });
+});
 
 Empirica.onStageStart(({ stage }) => {
-  // calculateAdvertiserScore(stage);
+  calculateAdvertiserScore(stage);
 });
 
-Empirica.onStageEnded(({ stage }) => {});
+Empirica.onStageEnded(({ stage, game }) => {
+  // Handle warrant challenges at the end of the advertisement stage
+  if (stage.get("name") === "advertiseProduct") {
+    stage.currentGame.players.forEach(player => {
+      const warrant = player.get("warrant");
+      if (warrant.active && warrant.challenged) {
+        resolveWarrantChallenge(player, game);
+      }
+    });
+  }
+});
 
-Empirica.onRoundEnded(({ round }) => {});
+Empirica.onRoundEnded(({ round, game }) => {
+  // Apply rewards for unchallenged warrants
+  round.currentGame.players.forEach(player => {
+    const warrant = player.get("warrant");
+    if (warrant.active && !warrant.challenged) {
+      applyReward(player);
+    }
+  });
+
+  // ... other round end logic
+});
 
 Empirica.onGameEnded(({ game }) => {});
 
@@ -99,4 +133,41 @@ function calculateAdvertiserScore(stage) {
     player.set("score", totalScore + salesCount);
     player.set("scoreUpdated", true)
   }
+}
+
+// Handle the resolution of a warrant challenge
+function resolveWarrantChallenge(player, game) {
+  const adQuality = player.get("adQuality");
+  const productionQuality = player.get("productionQuality");
+  // Logic to determine if the warrant is true
+  const isWarrantTrue = adQuality === productionQuality;
+
+  if (isWarrantTrue) {
+    applyReward(player); // Apply reward if the warrant is true
+  } else {
+    applyPenalty(player); // Apply penalty if the warrant is false
+  }
+
+  // Reset the warrant status
+  player.set("warrant", {
+    amount: 0,
+    active: false,
+    challenged: false
+  });
+}
+
+// Apply penalty to a player
+function applyPenalty(player) {
+  // Logic to reduce the player's customers or points
+  // Example: Subtract 10 points
+  let score = player.get("score") || 0;
+  player.set("score", score - 10);
+}
+
+// Apply reward to a player
+function applyReward(player) {
+  // Logic to increase the player's customers or points
+  // Example: Add 10 points
+  let score = player.get("score") || 0;
+  player.set("score", score + 10);
 }

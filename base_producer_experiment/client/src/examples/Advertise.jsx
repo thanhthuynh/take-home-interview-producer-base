@@ -77,6 +77,7 @@ import {
     }
   
     const isResultStage = stage.get("name") === "result";
+    let product = null
   
     if (players.length > 1) {
       product = (
