@@ -76,7 +76,6 @@ Empirica.onStageEnded(({ stage, game }) => {
         if (targetPlayer) {
           resolveWarrantChallenge(targetPlayer, stage.currentGame);
 
-          
         }
       }
     });
