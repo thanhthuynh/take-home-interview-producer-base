@@ -8,6 +8,7 @@ import PlayerScore from "../components/PlayerScore";
 import ProfitMarginCalculation from "../components/ProfitMarginCalculation";
 import GoToMarketButton from "../components/GoToMarketButton";
 import { useAdvertisementLogic } from "../hooks/useAdvertisementLogic";
+import { renderOtherPlayersAds } from "../components/OtherPlayerAds";
   
   export function Advertisement({ roundNumber }) {
     const {
@@ -19,14 +20,11 @@ import { useAdvertisementLogic } from "../hooks/useAdvertisementLogic";
       setProductionQualityAndCost,
       setAdvertisementQuality,
       setProductPrice,
+      updatePlayerScoreDisplay,
     } = useAdvertisementLogic(roundNumber);
   
     const stage = useStage();
     const isResultStage = stage.get("name") === "result";
-      
-    function updatePlayerScoreDisplay() {
-      console.log("Player score updated");
-    }
 
     let product = null
   
@@ -60,21 +58,7 @@ import { useAdvertisementLogic } from "../hooks/useAdvertisementLogic";
       );
     }
 
-    const otherPlayersAds = players.filter(p => p.id !== player.id).map(otherPlayer => (
-      <div key={otherPlayer.id} className="other-player-ad">
-          <div>
-              {/* Display other player details */}
-              <p>Player {otherPlayer.id}'s Advertisement:</p>
-              <p>Production Quality: {otherPlayer.round.get("productionQuality")}</p>
-              <p>Advertisement Quality: {otherPlayer.round.get("advertisementQuality")}</p>
-              <p>Price: ${otherPlayer.round.get("priceOfProduct")}</p>
-              <p>Warrant: {otherPlayer.round.get("warrantAmount")}</p>
-              <p>Challenged: {player.round.get("challenge")?.status ? "Yes" : "No"}</p>
-              <Button text="Challenge" handleClick={() => initiatePlayerChallenge(otherPlayer.id)}>Challenge</Button>
-          </div>
-      </div>
-    ));
-
+    const otherPlayersAds = renderOtherPlayersAds(players, player, initiatePlayerChallenge);
 
     return (
       <div className="md:min-w-96 lg:min-w-128 xl:min-w-192 flex flex-col items-center space-y-10">
@@ -124,7 +108,7 @@ import { useAdvertisementLogic } from "../hooks/useAdvertisementLogic";
                 <input
                     type="number"
                     value={player.round.get("warrantAmount") || 0}
-                    onChange={updateWarrantAmount}
+                    onChange={(e) => updateWarrantAmount(e)}
                     min="0"
                 />
             </label>

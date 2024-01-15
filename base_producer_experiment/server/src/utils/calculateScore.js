@@ -6,8 +6,14 @@ export function calculateAdvertiserScore(stage) {
     if (
       stage.get("name") !== "Advertise" ||
       stage.round.get("task") !== "advertise" ||
-      stage.get("name") !== "Advertise Again" ||
-      stage.round.get("task") !== "advertiseAgain"
+      stage.get("name") !== "Advertise" ||
+      stage.round.get("task") !== "advertise2" ||
+      stage.get("name") !== "Advertise" ||
+      stage.round.get("task") !== "advertise3" ||
+      stage.get("name") !== "Advertise" ||
+      stage.round.get("task") !== "advertise4" ||
+      stage.get("name") !== "Advertise" ||
+      stage.round.get("task") !== "advertise5"
     ) {
       return;
     }

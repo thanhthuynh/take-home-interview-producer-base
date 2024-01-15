@@ -16,7 +16,7 @@ export function SalesResults({ roundNumber }) {
 
   // Check if the player was the target of a challenge
   const challengeResult = player.get("challengeResult");
-  const wasChallenged = challengeResult != null;
+  const wasChallenged = player.get("challenge")?.wasChallenged || false;
 
   // Access the challenge result and score
   const challengeOutcome = challengeResult?.result;
@@ -47,19 +47,46 @@ export function SalesResults({ roundNumber }) {
   //    case "low":
   //      switch (priceOfProduct) {case "high": min =10, max=20; break; case "low": min = 50, max = 80; break;}
   //  }
-  const numBuyers = Math.floor((Math.random() * (max - min ) + min)) ;
-
-
-  const salesCount = numBuyers * (priceOfProduct - productionCost);
-  const finalScore = currentScore + salesCount + challengeScore;
-
+  
+  // Fetch stored scores instead of recalculating
+  const salesCount = player.get("salesCount") || 0;
+  const challengeScore = player.get("challengeScore") || 0; // Ensure this is set in the challenge resolution logic
+  const finalScore = player.get("score") || 0;
   console.log("salesCount", salesCount, "challengeScore", challengeScore, "finalScore", finalScore);
+
+  // Function to render the challenge result section
+  const renderChallengeResultSection = () => {
+    const challengeResult = player.round.get("challengeResult");
+    const wasChallenged = player.round.get("challenge")?.wasChallenged || false;
+
+    if (!wasChallenged) {
+      return null;
+    }
+
+    const challengeOutcome = challengeResult?.result;
+    const challengeScore = challengeResult?.score || 0;
+
+    return (
+      <div className="challenge-result-section">
+        <h2 className="text-lg leading-6 font-medium text-gray-900">
+          Challenge Result
+        </h2>
+        <p>
+          Your warrant was {challengeOutcome ? "upheld and you gained " : "invalidated and you lost"} ${Math.abs(challengeScore)}.
+        </p>
+      </div>
+    );
+  };
+
+
 
   function handleSubmit() {
     console.log('Moving on from results round');
     player.stage.set("submit", true);
     player.set("score", finalScore);
   }
+
+
   
   return (
     <div className="mt-3 sm:mt-5 p-20">
@@ -88,16 +115,7 @@ export function SalesResults({ roundNumber }) {
         </p><br/>
 
         {/* Challenge Result Section */}
-        {wasChallenged && (
-          <div className="challenge-result-section">
-            <h2 className="text-lg leading-6 font-medium text-gray-900">
-              Challenge Result
-            </h2>
-            <p>
-              Your warrant was {challengeOutcome ? "upheld and you gained " : "invalidated and you lost"} ${Math.abs(challengeScore)}.
-            </p>
-          </div>
-        )}
+        {renderChallengeResultSection()}
 
         <p> Your score for this round is: {salesCount} + {challengeScore} </p>
         <p> Your total score is: {finalScore} </p><br/>

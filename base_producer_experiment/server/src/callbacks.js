@@ -63,22 +63,20 @@ Empirica.onGameStart(({ game }) => {
 
 Empirica.onRoundStart(({ round }) => {});
 
-Empirica.onStageStart(({ stage }) => {
-  calculateAdvertiserScore(stage);
-});
+Empirica.onStageStart(({ stage }) => {});
 
 Empirica.onStageEnded(({ stage, game }) => {
   if (stage.get("name") === "advertiseProduct") {
+    calculateAdvertiserScore(stage); // Calculate scores at the end of the selection stage
+
     stage.currentGame.players.forEach(player => {
-      const challenge = player.get("challenge");
+      const challenge = player.round.get("challenge");
       if (challenge) {
         const targetPlayer = stage.currentGame.players.find(p => p.id === challenge.target);
         if (targetPlayer) {
-          // Implement logic to handle the challenge
           resolveWarrantChallenge(targetPlayer, stage.currentGame);
 
-          // Reset the challenge state
-          player.set("challenge", null);
+          
         }
       }
     });
@@ -86,15 +84,15 @@ Empirica.onStageEnded(({ stage, game }) => {
 });
 
 Empirica.onRoundEnded(({ round }) => {
-  // Apply rewards for unchallenged warrants
+
   round.currentGame.players.forEach(player => {
-    const warrant = player.get("warrant");
+    const warrant = player.get("challengeResult");
     if (warrant.active && !warrant.challenged) {
       applyReward(player);
     }
   });
 
-  // ... other round end logic
+  player.set("challenge", null);
 });
 
 Empirica.onGameEnded(({ game }) => {});
@@ -133,14 +131,14 @@ function calculateAdvertiserScore(stage) {
 
 function resolveWarrantChallenge(player, game) {
   // Retrieve the challenge from the target player
-  const challenge = player.get("challenge");
+  const challenge = player.round.get("challenge");
   if (!challenge) return;
 
   const challengerPlayer = game.players.find(p => p.id === challenge.challenger);
   if (!challengerPlayer) return;
 
-  const adQuality = player.get("adQuality");
-  const productionQuality = player.get("productionQuality");
+  const adQuality = player.round.get("adQuality");
+  const productionQuality = player.round.get("productionQuality");
   const isWarrantTrue = adQuality === productionQuality;
 
   if (isWarrantTrue) {
@@ -152,16 +150,16 @@ function resolveWarrantChallenge(player, game) {
 
 
 function applyPenalty(targetPlayer, challenger) {
-  const warrantAmount = challenger.get("challenge").warrantAmount; // get warrantAmount from challenge object
-  targetPlayer.set("challengeResult", {
+  const warrantAmount = challenger.round.get("challenge")?.warrantAmount; // get warrantAmount from challenge object
+  targetPlayer.round.set("challengeResult", {
     result: false,
     score: -1 * warrantAmount
   });
 }
 
 function applyReward(targetPlayer, challenger) {
-  const warrantAmount = challenger.get("challenge").warrantAmount; // get warrantAmount from challenge object
-  targetPlayer.set("challengeResult", {
+  const warrantAmount = challenger.round.get("challenge")?.warrantAmount; // get warrantAmount from challenge object
+  targetPlayer.round.set("challengeResult", {
     result: true,
     score: warrantAmount
   });
