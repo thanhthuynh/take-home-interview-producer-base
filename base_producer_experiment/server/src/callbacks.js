@@ -1,5 +1,7 @@
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 export const Empirica = new ClassicListenersCollector();
+import { calculateAdvertiserScore } from "./utils/calculateScore";
+import { resolveWarrantChallenge } from "./utils/warrantUtils";
 
 Empirica.onGameStart(({ game }) => {
 
@@ -63,10 +65,8 @@ Empirica.onGameStart(({ game }) => {
 
 Empirica.onRoundStart(({ round }) => {});
 
-Empirica.onStageStart(({ stage }) => {});
-
-Empirica.onStageEnded(({ stage, game }) => {
-  if (stage.get("name") === "advertiseProduct") {
+Empirica.onStageStart(({ stage }) => {
+  if (stage.get("name") === "Results") {
     calculateAdvertiserScore(stage); // Calculate scores at the end of the selection stage
 
     stage.currentGame.players.forEach(player => {
@@ -82,84 +82,16 @@ Empirica.onStageEnded(({ stage, game }) => {
   }
 });
 
-Empirica.onRoundEnded(({ round }) => {
+Empirica.onStageEnded(({ stage, game }) => {});
 
+Empirica.onRoundEnded(({ round }) => {
   round.currentGame.players.forEach(player => {
-    const warrant = player.get("challengeResult");
-    if (warrant.active && !warrant.challenged) {
+    const challengeResult = player.get("challengeResult");
+    const challenge = player.round.get("challenge");
+    if (challenge?.wasChallenged && challengeResult?.result) {
       applyReward(player);
     }
   });
-
-  player.set("challenge", null);
 });
 
 Empirica.onGameEnded(({ game }) => {});
-
-function getRandomInt(max) {
-  return Math.floor(Math.random() * max);
-}
-
-function calculateAdvertiserScore(stage) {
-  if (
-    stage.get("name") !== "Advertise" ||
-    stage.round.get("task") !== "advertise" ||
-    stage.get("name") !== "Advertise Again" ||
-    stage.round.get("task") !== "advertiseAgain"
-  ) {
-    return;
-  }
-
-  for (const player of stage.currentGame.players) {
-    const challenge = player.round.get("challengeResult");
-    if (!challenge || challenge?.result) {
-      // Only update score if no challenge or challenge upheld
-      let adQuality = player.get("adQuality");
-      let salesCount = 0;
-      let randomDraw = getRandomInt(100);
-      salesCount = randomDraw * (adQuality === "extraordinary" ? 15 : 10);
-      
-      player.set("numBuyers", randomDraw);
-      let totalScore = player.get("score") || 0;
-      player.set("salesCount", salesCount);
-      player.set("score", totalScore + salesCount);
-    }
-  }
-}
-
-
-function resolveWarrantChallenge(player, game) {
-  // Retrieve the challenge from the target player
-  const challenge = player.round.get("challenge");
-  if (!challenge) return;
-
-  const challengerPlayer = game.players.find(p => p.id === challenge.challenger);
-  if (!challengerPlayer) return;
-
-  const adQuality = player.round.get("adQuality");
-  const productionQuality = player.round.get("productionQuality");
-  const isWarrantTrue = adQuality === productionQuality;
-
-  if (isWarrantTrue) {
-    applyReward(player, challengerPlayer);
-  } else {
-    applyPenalty(player, challengerPlayer);
-  }
-}
-
-
-function applyPenalty(targetPlayer, challenger) {
-  const warrantAmount = challenger.round.get("challenge")?.warrantAmount; // get warrantAmount from challenge object
-  targetPlayer.round.set("challengeResult", {
-    result: false,
-    score: -1 * warrantAmount
-  });
-}
-
-function applyReward(targetPlayer, challenger) {
-  const warrantAmount = challenger.round.get("challenge")?.warrantAmount; // get warrantAmount from challenge object
-  targetPlayer.round.set("challengeResult", {
-    result: true,
-    score: warrantAmount
-  });
-}

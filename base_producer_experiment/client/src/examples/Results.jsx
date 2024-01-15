@@ -15,12 +15,7 @@ export function SalesResults({ roundNumber }) {
   const warrantAmount = choices ? choices[4] : 0;
 
   // Check if the player was the target of a challenge
-  const challengeResult = player.get("challengeResult");
   const wasChallenged = player.get("challenge")?.wasChallenged || false;
-
-  // Access the challenge result and score
-  const challengeOutcome = challengeResult?.result;
-  const challengeScore = challengeResult?.score || 0;
 
   console.log("wasChallenged", wasChallenged);
   
@@ -47,9 +42,10 @@ export function SalesResults({ roundNumber }) {
   //    case "low":
   //      switch (priceOfProduct) {case "high": min =10, max=20; break; case "low": min = 50, max = 80; break;}
   //  }
-  
+
   // Fetch stored scores instead of recalculating
-  const salesCount = player.get("salesCount") || 0;
+  const salesCount = player.round.get("salesCount") || 0;
+  const numBuyers = player.get("numBuyers") || 0;
   const challengeScore = player.get("challengeScore") || 0; // Ensure this is set in the challenge resolution logic
   const finalScore = player.get("score") || 0;
   console.log("salesCount", salesCount, "challengeScore", challengeScore, "finalScore", finalScore);
@@ -64,7 +60,6 @@ export function SalesResults({ roundNumber }) {
     }
 
     const challengeOutcome = challengeResult?.result;
-    const challengeScore = challengeResult?.score || 0;
 
     return (
       <div className="challenge-result-section">
@@ -117,7 +112,7 @@ export function SalesResults({ roundNumber }) {
         {/* Challenge Result Section */}
         {renderChallengeResultSection()}
 
-        <p> Your score for this round is: {salesCount} + {challengeScore} </p>
+        <p> Your score for this round is: {currentScore} + {salesCount} </p>
         <p> Your total score is: {finalScore} </p><br/>
         <p> 
           Click to proceed to the next round to sell products in this marketplace.

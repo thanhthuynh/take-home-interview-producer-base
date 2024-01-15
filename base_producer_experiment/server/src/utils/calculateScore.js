@@ -3,6 +3,7 @@ function getRandomInt(max) {
 }
   
 export function calculateAdvertiserScore(stage) {
+  console.log("calculateAdvertiserScore");
     if (
       stage.get("name") !== "Advertise" ||
       stage.round.get("task") !== "advertise" ||
@@ -19,18 +20,14 @@ export function calculateAdvertiserScore(stage) {
     }
   
     for (const player of stage.currentGame.players) {
-      const challenge = player.round.get("challengeResult");
-      if (!challenge || challenge?.result) {
-        // Only update score if no challenge or challenge upheld
-        let adQuality = player.get("adQuality");
+        let adQuality = player.round.get("adQuality");
         let salesCount = 0;
         let randomDraw = getRandomInt(100);
         salesCount = randomDraw * (adQuality === "extraordinary" ? 15 : 10);
         
-        player.set("numBuyers", randomDraw);
+        player.round.set("numBuyers", randomDraw);
         let totalScore = player.get("score") || 0;
-        player.set("salesCount", salesCount);
-        player.set("score", totalScore + salesCount);
-      }
+        player.round.set("salesCount", salesCount);
+        player.round.set("score", totalScore + salesCount);
     }
 }
